@@ -1,0 +1,117 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+
+        - id: keycloak
+          uri: http://localhost:8080/
+          predicates:
+            - Path=/keycloak/**
+          filters:
+            - RewritePath=/keycloak/(?<segment>.*), /$\{segment}
+
+        - id: dms_route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/dms/**
+          filters:
+            - RewritePath=/dms/(?<segment>.*), /$\{segment}
+            - TokenRelay
+
+        - id: dmsnotifications_route
+          uri: http://dms-notifications:8080
+          predicates:
+            - Path=/dmsnotifications/**
+          filters:
+            - RewritePath=/dmsnotifications/(?<segment>.*), /$\{segment}
+            - TokenRelay
+
+        - id: dms-admin_route
+          uri: http://dms-admin:8080
+          predicates:
+            - Path=/dms-admin/**
+          filters:
+            - RewritePath=/dms-admin/(?<segment>.*), /dms-admin/$\{segment}
+            - TokenRelay
+
+        - id: cliservice_route
+          uri: http://sql-parser:10001
+          predicates:
+            - Path=/sql_parser/**
+          filters:
+            - RewritePath=/sql_parser/(?<segment>.*), /$\{segment}
+            - TokenRelay
+
+        - id: dmsspark_route
+          uri: http://dmsspark:8080
+          predicates:
+            - Path=/dmsspark/**
+          filters:
+            - RewritePath=/dmsspark/(?<segment>.*), /$\{segment}
+            - TokenRelay
+
+        - id: myapp_route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/myapp/**
+          filters:
+            - RewritePath=/myapp/(?<segment>.*), /$\{segment}
+            - TokenRelay
+
+        - id: socket.io_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/socket.io/**
+          filters:
+            - RewritePath=/socket.io/(?<segment>.*), /socket.io/$\{segment}
+            - TokenRelay
+
+        - id: socket_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/socket/**
+          filters:
+            - RewritePath=/socket/(?<segment>.*), /socket/$\{segment}
+            - TokenRelay
+
+        - id: app_socket_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/app/socket/**
+          filters:
+            - RewritePath=/app/socket/(?<segment>.*), /app/socket/$\{segment}
+            - TokenRelay
+
+        - id: events_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/events/**
+          filters:
+            - TokenRelay
+
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak-provider:
+            issuer-uri: http://localhost:8080/keycloak/realms/dataq
+        registration:
+          keycloak-api-gw-client:
+            provider: keycloak-provider
+            client-id: api-gw-client
+            scopes: openid
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/keycloak'
+
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          web: DEBUG

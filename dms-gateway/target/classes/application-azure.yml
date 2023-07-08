@@ -1,0 +1,110 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: dms-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - DmsTokenRelay
+      routes:
+        - id: dms_route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/dms/**
+          filters:
+            - RewritePath=/dms/(?<segment>.*), /$\{segment}
+
+        - id: dmsnotifications_route
+          uri: http://dms-notifications:8080
+          predicates:
+            - Path=/dmsnotifications/**
+          filters:
+            - RewritePath=/dmsnotifications/(?<segment>.*), /$\{segment}
+
+        - id: dms-admin_route
+          uri: http://dms-admin:8080
+          predicates:
+            - Path=/dms-admin/**
+          filters:
+            - RewritePath=/dms-admin/(?<segment>.*), /dms-admin/$\{segment}
+
+        - id: cliservice_route
+          uri: http://sql-parser:10001
+          predicates:
+            - Path=/sql_parser/**
+          filters:
+            - RewritePath=/sql_parser/(?<segment>.*), /$\{segment}
+
+        - id: dmsspark_route
+          uri: http://dmsspark:8080
+          predicates:
+            - Path=/dmsspark/**
+          filters:
+            - RewritePath=/dmsspark/(?<segment>.*), /$\{segment}
+
+        - id: myapp_route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/myapp/**
+          filters:
+            - RewritePath=/myapp/(?<segment>.*), /$\{segment}
+
+        - id: socket.io_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/socket.io/**
+          filters:
+            - RewritePath=/socket.io/(?<segment>.*), /socket.io/$\{segment}
+
+        - id: socket_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/socket/**
+          filters:
+            - RewritePath=/socket/(?<segment>.*), /socket/$\{segment}
+
+        - id: app_socket_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/app/socket/**
+          filters:
+            - RewritePath=/app/socket/(?<segment>.*), /app/socket/$\{segment}
+
+        - id: events_route
+          uri: http://dms-em:8080
+          predicates:
+            - Path=/events/**
+  security:
+    oauth2:
+      client:
+        provider:
+          azure:
+            issuer-uri: https://login.microsoftonline.com/fbb052b8-0ce7-478d-9be1-e1cae93e0fce/v2.0
+        registration:
+          azure:
+            provider: azure
+            client-id: 1903d984-84a0-44ed-8f41-82effa162b2d
+            client-secret: xKw8Q~I6ZTr-cz4KDM-f265-lBSJq_-AEUHqaaH5
+            redirect-uri: "http://localhost:8081/login/oauth2/code/azure-dev"
+            scope:
+              - openid
+              - email
+              - profile
+              - https://graph.microsoft.com/.default
+
+# jwt secret key
+jwt:
+  secret:
+    key: 0096pAJR2pCBoconOh8Blgi4ZzMs3E/sbGtmhhk/2jc=
+
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          web: DEBUG
+    com:
+      dataq:
+        gateway: DEBUG

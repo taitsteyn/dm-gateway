@@ -1,0 +1,24 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: dms-gateway
+
+  main:
+    web-application-type : reactive
+    allow-bean-definition-overriding: true
+  cloud:
+    gateway:
+      routes:
+        - id: microservice-demo
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/demo/**
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/dataq
+          jwk-set-uri: http://localhost:8080/realms/dataq/protocol/openid-connect/certs
